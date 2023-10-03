@@ -1,0 +1,17 @@
+version: '3'
+services:
+  node-mongo:
+    image: node-mongo:latest
+    ports:
+     - 5555:5555
+  nginx:
+    image: nginx:1.25.2
+    ports:
+     - 8080:80
+    networks:
+     - node-mongo
+
+networks:
+  node-mongo:
+    external:
+      name: node-mongo
