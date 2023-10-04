@@ -5,13 +5,6 @@ services:
     ports:
      - 5555:5555
   nginx:
-    image: nginx:1.25.2
+    image: nginx
     ports:
      - 8080:80
-    networks:
-     - node-mongo
-
-networks:
-  node-mongo:
-    external:
-      name: node-mongo

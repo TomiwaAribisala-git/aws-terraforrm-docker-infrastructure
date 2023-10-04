@@ -8,6 +8,9 @@ This is a [Node.js](https://nodejs.org/) project
 
 2 > use "http://localhost:5555/api" as base url in postman 
 
+## Load Balancer DNS Name:
+- Nodejs App: http://node-alb-919790509.eu-north-1.elb.amazonaws.com:5555/ 
+- Nginx: http://node-alb-919790509.eu-north-1.elb.amazonaws.com:8080/ 
 
 ## Steps for creating an AWS EC2 Instance in a Private VPC Subnet
 - Given the three default subnets of an AWS account are public subnets, create a load balancer in one of the three public subnets, the load balancer fronts our AWS EC2 Instance created in furthur steps.
