@@ -62,12 +62,20 @@ resource "aws_security_group" "alb-sg" {
 
     ingress {
         description      = "user access"
-        from_port        = 80
-        to_port          = 80
+        from_port        = 8080
+        to_port          = 8080
         protocol         = "tcp"
         cidr_blocks      = ["0.0.0.0/0"]
     }
     
+    ingress {
+        description      = "user access"
+        from_port        = 5555
+        to_port          = 5555
+        protocol         = "tcp"
+        cidr_blocks      = ["0.0.0.0/0"]
+    }
+
     egress {
         from_port        = 0
         to_port          = 0
@@ -102,8 +110,8 @@ resource "aws_security_group" "server-sg" {
 
     ingress {
         description      = "load balancer access"
-        from_port        = 80
-        to_port          = 80
+        from_port        = 8080
+        to_port          = 8080
         protocol         = "tcp"
         security_groups = [aws_security_group.alb-sg.id]
     }
@@ -132,27 +140,51 @@ resource "aws_lb" "node-alb" {
   }
 }
 
-resource "aws_lb_target_group" "node-target-group" {
-  name     = "node-target-group"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = data.aws_vpc.default.id
+resource "aws_lb_target_group" "nginx-lb-tg" {
+  name        = "nginx-lb-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = data.aws_vpc.default.id
+}
+
+resource "aws_lb_target_group" "node-lb-tg" {
+  name        = "node-lb-tg"
+  port        = 5555
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = data.aws_vpc.default.id
+}
+
+resource "aws_lb_target_group_attachment" "nginx-target-group-attachment" {
+  target_group_arn = aws_lb_target_group.nginx-lb-tg.arn
+  target_id        = aws_instance.node-instance.private_ip
+  port             = 8080
 }
 
 resource "aws_lb_target_group_attachment" "node-target-group-attachment" {
-  target_group_arn = aws_lb_target_group.node-target-group.arn
-  target_id        = aws_instance.node-instance.id
-  port             = 80
+  target_group_arn = aws_lb_target_group.node-lb-tg.arn
+  target_id        = aws_instance.node-instance.private_ip
+  port             = 5555
+}
+
+resource "aws_lb_listener" "nginx-listener" {
+  load_balancer_arn = aws_lb.node-alb.arn
+  port              = "8080"
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.nginx-lb-tg.arn
+  }
 }
 
 resource "aws_lb_listener" "node-listener" {
   load_balancer_arn = aws_lb.node-alb.arn
-  port              = "80"
+  port              = "5555"
   protocol          = "HTTP"
-
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.node-target-group.arn
+    target_group_arn = aws_lb_target_group.node-lb-tg.arn
   }
 }
 
@@ -173,7 +205,7 @@ resource "null_resource" "configure_server" {
         trigger = aws_instance.node-instance.public_ip
     }
     provisioner "local-exec" {
-        working_dir = "/mnt/c/Users/Tomiwa/sample-node-mongo-api/ansible_config"
+        working_dir = "/mnt/c/Users/Tomiwa/Documents/cloud-devops-roadmap/terraform-docker-alb/ansible_config"
         command = "ansible-playbook --inventory ${aws_instance.node-instance.public_ip} --private-key ${var.ssh_private_key} --user ec2-user node-mongo-playbook.yml"
     }
 }
