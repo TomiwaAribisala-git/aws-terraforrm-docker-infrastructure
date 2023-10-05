@@ -9,14 +9,25 @@ This is a [Node.js](https://nodejs.org/) project
 2 > use "http://localhost:5555/api" as base url in postman 
 
 
-
 ## This project is an assessment of my cloud infrastructure skills which involved using an Infrastructure as Code tool---Terraform for creating a Load Balancer in a public subnet which directs traffic to an AWS EC2 Instance in a private subnet, the EC2 Instance serves two containerized applications---a nodejs app container image and a nginx container image which are deployed to the Instance via a configuration management tool---Ansible.
 
-## Load Balancer DNS Endpoints:
+### Load Balancer DNS Endpoints:
 - Nodejs App: http://node-alb-919790509.eu-north-1.elb.amazonaws.com:5555/ 
 - Nginx: http://node-alb-919790509.eu-north-1.elb.amazonaws.com:8080/ 
 
-## Steps for creating an AWS EC2 Instance in a Private VPC Subnet
+### Given the two Load Balancer endpoints above, in a real life production environment, the endpoints should ideally be reachable as subdomains. 
+- The endpoints above cannot be directly used with DNS Records in AWS Route53 as it doesn't work with a CNAME Record which works for hostnames as a subdomain(www.example.com) or an Alias Record which works for hostnames as root domain and subdomain(example.com and www.example.com); 
+- To obtain suitable URLs for the endpoints which can be used as A-records in AWS Route53, associate the endpoints with CloudFront distributions using the Load Balancer DNS name as Origin;
+- The CloudFront Distribution enables HTTPS Protocol and Web Application Firewall for the Load Balancer, note that the security group of the Load Balancer must allow the Public IPs of the CloudFront Distribution Edge Locations. 
+- Add the subdomain you wish to use to reach the endpoints as an "Alternate domain name(CNAME)"--eg.test.nodeapi.space, in the CloudFront configuration;
+- Add a custom certificate(since we are using HTTPS) in your CloudFront configuration using AWS Certificate Manager or import your custom certificate;
+- Repeat the steps for the other endpoint;
+- Next, create a hosted zone with a domain name in Route53; create A-records for the two CloudFront Distributions based on the domain with an "Alias to CloudFront Distribution"; 
+- The two containerized applications can be accessed via the following subdomains:
+    - test.nodeapi.space
+    - test.nginx.space
+
+### Steps for creating an AWS EC2 Instance in a Private VPC Subnet
 - Given the three default subnets of an AWS account are public subnets, create a load balancer in one of the three public subnets, the load balancer fronts our AWS EC2 Instance created in furthur steps.
 
 - Create a private subnet in the default VPC with an attached availability zone, the private subnet is where we deploy the AWS EC2 Instance, the private subnet ip address can be derived by deducing its number across the default VPC and the three public subnets ip addresses.
@@ -27,7 +38,7 @@ This is a [Node.js](https://nodejs.org/) project
 
 - Associate the Route Table with the private subnet.
 
-## Steps for running the python checker script locally
+### Steps for running the python checker script locally
 - Install Python 
 ```
 sudo apt install python3 
