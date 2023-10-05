@@ -19,7 +19,7 @@ This is a [Node.js](https://nodejs.org/) project
 - The endpoints above cannot be directly used with DNS Records in AWS Route53 as it doesn't work with a CNAME Record which works for hostnames as a subdomain(www.example.com) or an Alias Record which works for hostnames as root domain and subdomain(example.com and www.example.com); 
 - To obtain suitable URLs for the endpoints which can be used as A-records in AWS Route53, associate the endpoints with CloudFront distributions using the Load Balancer DNS name as Origin;
 - The CloudFront Distribution enables HTTPS Protocol and Web Application Firewall for the Load Balancer, note that the security group of the Load Balancer must allow the Public IPs of the CloudFront Distribution Edge Locations. 
-- Add the subdomain you wish to use to reach the endpoints as an "Alternate domain name(CNAME)"--eg.test.nodeapi.space, in the CloudFront configuration;
+- Add the subdomain you wish to use to reach the endpoints as an "Alternate domain name(CNAME)"--eg. test.nodeapi.space in the CloudFront configuration;
 - Add a custom certificate(since we are using HTTPS) in your CloudFront configuration using AWS Certificate Manager or import your custom certificate;
 - Repeat the steps for the other endpoint;
 - Next, create a hosted zone with a domain name in Route53; create A-records for the two CloudFront Distributions based on the domain with an "Alias to CloudFront Distribution"; 
