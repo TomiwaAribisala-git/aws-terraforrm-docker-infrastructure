@@ -1,45 +1,39 @@
 import boto3
-import os 
-import time
 
-aws_access_key_id = os.environ["AWS_ACCESS_KEY_ID"]
-aws_secret_access_key = os.environ["AWS_SECRET_ACCESS_KEY"]
-aws_region = 'eu-north-1'
+instance_id = 'i-08d002a6b831c8a47'
+ec2 = boto3.client('ec2', region_name="eu-north-1")
 
-instance_id = 'i-0c5104cef51f79fcd'
-
-ec2 = boto3.client('ec2', region_name=aws_region)
-
-def check_instance_status(instance_id):
+def check_instance_status(ec2, instance_id):
     try:
-        response = ec2.describe_instances(InstanceIds=[instance_id])
-        instance = response['Reservations'][0]['Instances'][0]
-        return instance['State']['Name']
+        response = ec2.describe_instance_status(InstanceIds=[instance_id])
+        if len(response['InstanceStatuses']) == 0:
+            return 'not-found'
+        status = response['InstanceStatuses'][0]['InstanceState']['Name']
+        return status
     except Exception as e:
-        print(f"Error checking instance status: {e}")
-        return None
+        return 'error'
 
-def restart_instance(instance_id):
+def restart_instance(ec2, instance_id):
     try:
-        ec2.stop_instances(InstanceIds=[instance_id])
-        ec2.get_waiter('instance_stopped').wait(InstanceIds=[instance_id])
         ec2.start_instances(InstanceIds=[instance_id])
-        ec2.get_waiter('instance_running').wait(InstanceIds=[instance_id])
-        print(f"Instance {instance_id} has been restarted.")
+        return f"Instance {instance_id} has been started."
     except Exception as e:
-        print(f"Error restarting instance: {e}")
+        return f"Error restarting instance: {str(e)}"
 
 def main():
-    while True:
-        instance_status = check_instance_status(instance_id)
-        if instance_status == 'running':
-            print("Instance is up and serving the expected version.")
-        elif instance_status == 'stopped':
-            print("Instance is stopped. Restarting...")
-            restart_instance(instance_id)
+    
+    instance_status = check_instance_status(ec2, instance_id)
 
-        # Sleep for 3 hours before the next check (3 hours * 60 minutes * 60 seconds)
-        time.sleep(3 * 60 * 60)
+    if instance_status == 'running':
+        print(f"Instance {instance_id} is running.")
+    elif instance_status == 'stopped':
+        print(f"Instance {instance_id} is stopped. Restarting...")
+        restart_result = restart_instance(ec2, instance_id)
+        print(restart_result)
+    elif instance_status == 'not-found':
+        print(f"Instance {instance_id} not found. Please check the instance ID.")
+    elif instance_status == 'error':
+        print("There was an error checking the instance status. Please check your configuration.")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

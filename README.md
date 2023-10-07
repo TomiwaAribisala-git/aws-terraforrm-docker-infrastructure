@@ -38,24 +38,36 @@ This is a [Node.js](https://nodejs.org/) project
 
 - Associate the Route Table with the private subnet.
 
-### Steps for running the python checker script locally
-- Install Python 
+### Steps for running the python script as a CRON Job
+- Ensure your python script is executable 
 ```
-sudo apt install python3 
-```
-
-- Install Python Packages 
-```
-python -m pip install boto3
-```
-```
-python -m pip install os
-```
-```
-python -m pip install time
+chmod +x checker_script.py
 ```
 
-- Execute the script:
+- Ensure CRON is running
 ```
-python checker_script.py
+service cron start
 ```
+```
+service cron enable
+```
+```
+service cron status
+```
+
+- List Cron Jobs for the current user 
+```
+crontab -l
+```
+
+- Create a Cron Job for the python script using the command:`crontab -e`, the command launches the crontab file in edit mode, press `i` to edit the file
+
+- Add the command to execute the python script every six hours:
+`0 */6 * * * /usr/bin/python3 /mnt/c/Users/Tomiwa/Documents/cloud-devops-roadmap/terraform-docker-alb/checker_script.py`
+
+- By default the output of the crontab jobs (including errors) is sent through the email of the user which the crontab file belongs to, however, you can specify an external email address that cron sends to with the `$MAILTO` variable. 
+MAILTO=tomiwaaribisala@gmail.com
+
+- Press `esc` to exit the editing mode
+
+- Type `:wq` to save and quit the file; w means to write and q means quit.
