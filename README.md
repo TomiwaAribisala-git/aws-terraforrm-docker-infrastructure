@@ -10,6 +10,7 @@ This is a [Node.js](https://nodejs.org/) project
 
 
 ## This project is an assessment of my cloud infrastructure skills which involved using an Infrastructure as Code tool---Terraform for creating a Load Balancer in a public subnet which directs traffic to an AWS EC2 Instance in a private subnet, the EC2 Instance serves two containerized applications---a nodejs app container image and a nginx container image which are deployed to the Instance via a configuration management tool---Ansible.
+![infrastructure_architecture](./infrastructure_architecture/infrastructure-architecture.png)
 
 ### Load Balancer DNS Endpoints:
 - Nodejs App: http://node-alb-919790509.eu-north-1.elb.amazonaws.com:5555/ 
