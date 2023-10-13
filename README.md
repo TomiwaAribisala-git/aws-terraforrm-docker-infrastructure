@@ -10,23 +10,45 @@ This is a [Node.js](https://nodejs.org/) project
 
 
 ## This project is an assessment of my cloud infrastructure skills which involved using an Infrastructure as Code tool---Terraform for creating a Load Balancer in a public subnet which directs traffic to an AWS EC2 Instance in a private subnet, the EC2 Instance serves two containerized applications---a nodejs app container image and a nginx container image which are deployed to the Instance via a configuration management tool---Ansible.
-![infrastructure_architecture](./infrastructure_architecture/infrastructure-architecture.png)
 
-### Load Balancer DNS Endpoints:
-- Nodejs App: http://node-alb-919790509.eu-north-1.elb.amazonaws.com:5555/ 
-- Nginx: http://node-alb-919790509.eu-north-1.elb.amazonaws.com:8080/ 
 
-### Given the two Load Balancer endpoints above, in a real life production environment, the endpoints should ideally be reachable as subdomains. 
-- The endpoints above cannot be directly used with DNS Records in AWS Route53 as it doesn't work with a CNAME Record which works for hostnames as a subdomain(www.example.com) or an Alias Record which works for hostnames as root domain and subdomain(example.com and www.example.com); 
-- To obtain suitable URLs for the endpoints which can be used as A-records in AWS Route53, associate the endpoints with CloudFront distributions using the Load Balancer DNS name as Origin;
+### Terraform Commands
+- Go to the Terraform Config directory
+```
+cd terraform_config
+```
+- Initialize Terraform directory and plugins
+```
+terraform init
+```
+- Generate Terraform plan
+```
+terraform plan
+```
+- Execute terraform apply to deploy infrastructure
+```
+terraform apply
+```
+
+
+### Execute Ansible playbook using AWS State Manager
+- Execute Ansible playbook using AWS State Manager.
+- [AWS State Manager Ansible Playbook Installation](https://aws.amazon.com/blogs/mt/running-ansible-playbooks-using-ec2-systems-manager-run-command-and-state-manager/).
+
+
+### Load Balancer DNS Endpoint:
+- http://node-alb-919790509.eu-north-1.elb.amazonaws.com 
+
+
+### Given the Load Balancer endpoint above, in a real life production environment, the endpoint should ideally be reachable as a subdomain. 
+- The endpoint above cannot be directly used with DNS Records in AWS Route53 as it doesn't work with a CNAME Record which works for hostnames as a subdomain(www.example.com) or an Alias Record which works for hostnames as root domain and subdomain(example.com and www.example.com); 
+- To obtain a suitable URL for the endpoint which can be used as A-record in AWS Route53, associate the endpoint with a CloudFront distribution using the Load Balancer DNS name as Origin;
 - The CloudFront Distribution enables HTTPS Protocol and Web Application Firewall for the Load Balancer, note that the security group of the Load Balancer must allow the Public IPs of the CloudFront Distribution Edge Locations. 
-- Add the subdomain you wish to use to reach the endpoints as an "Alternate domain name(CNAME)"--eg. test.nodeapi.space in the CloudFront configuration;
+- Add the subdomain you wish to use to reach the endpoint as an "Alternate domain name(CNAME)"--eg. test.nodeapi.space in the CloudFront configuration;
 - Add a custom certificate(since we are using HTTPS) in your CloudFront configuration using AWS Certificate Manager or import your custom certificate;
-- Repeat the steps for the other endpoint;
-- Next, create a hosted zone with a domain name in Route53; create A-records for the two CloudFront Distributions based on the domain with an "Alias to CloudFront Distribution"; 
-- The two containerized applications can be accessed via the following subdomains:
-    - test.nodeapi.space
-    - test.nginx.space
+- Next, create a hosted zone with a domain name in Route53; create A-records for the CloudFront Distribution based on the domain with an "Alias to CloudFront Distribution"; 
+- The two containerized applications can be accessed via the subdomain: test.nodeapi.space
+
 
 ### Steps for creating an AWS EC2 Instance in a Private VPC Subnet
 - Given the three default subnets of an AWS account are public subnets, create a load balancer in one of the three public subnets, the load balancer fronts our AWS EC2 Instance created in furthur steps.
@@ -38,6 +60,7 @@ This is a [Node.js](https://nodejs.org/) project
 - Create a Route Table for the private subnet to direct outbound traffic to the NAT Gateway in the public subnet.
 
 - Associate the Route Table with the private subnet.
+
 
 ### Steps for running the python script as a CRON Job
 - Ensure your python script is executable 

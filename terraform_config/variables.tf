@@ -27,7 +27,6 @@ variable node-tg-attachment2-port {}
 variable nginx-listener-port {}
 variable node-listener-port {}
 
-variable ssh_private_key {}
-
 variable instance_type {}
-variable private-key {}
+
+variable region {}
